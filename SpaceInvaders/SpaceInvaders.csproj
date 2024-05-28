@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="images\invader1.gif" />
+      <Resource Include="images\invader1.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\invader2.gif" />
+      <Resource Include="images\invader2.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\invader3.gif" />
+      <Resource Include="images\invader3.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\invader4.gif" />
+      <Resource Include="images\invader4.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\invader5.gif" />
+      <Resource Include="images\invader5.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\invader6.gif" />
+      <Resource Include="images\invader6.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\invader7.gif" />
+      <Resource Include="images\invader7.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\invader8.gif" />
+      <Resource Include="images\invader8.gif">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="images\player.png" />
+      <Resource Include="images\player.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+    </ItemGroup>
+
+</Project>
