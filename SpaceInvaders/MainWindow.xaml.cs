@@ -54,7 +54,7 @@ public partial class MainWindow : Window
     };
     
     private ShipDirection shipDirection = ShipDirection.Right;
-    private ShipDirection enemyShipDirection = ShipDirection.Right;
+    private ShipDirection enemyShipDirection = ShipDirection.Left;
 
     
     private void Window_ContentRendered(Object sender, EventArgs e)
@@ -77,7 +77,7 @@ public partial class MainWindow : Window
             {
                 Width = ShipSquareSize,
                 Height = ShipSquareSize,
-                Fill = nextIsOdd ? Brushes.Black : Brushes.Black
+                Fill = nextIsOdd ? Brushes.Transparent : Brushes.Transparent
             };
             
             GameArea.Children.Add(rect);
@@ -104,6 +104,7 @@ public partial class MainWindow : Window
     private void GameTickTimer_Tick(Object sender, EventArgs e)
     {
         MoveEnemy();
+        MoveEnemyBullet();
     }
     
     private void MoveShip()
@@ -121,13 +122,10 @@ public partial class MainWindow : Window
                 break;
         }
 
-        // if (DoCollisionCheck())
-        // {
             if (nextX > - 1 && nextX < GameArea.ActualWidth )
             {
                 ship.Position = new Point(nextX, nextY);
             }
-        // }
 
         DrawShip();
     }
@@ -197,21 +195,34 @@ public partial class MainWindow : Window
                     break;
             }
 
-            // if (DoCollisionCheck())
-            // {
-            if (enemys[7].Position.X != 760.0 )
+            if (DoCollisionCheck())
             {
-                if (nextX > -1 && nextX < GameArea.ActualWidth)
+                break;
+            }
+            
+            if (enemys[7].Position.X == 760.0 && enemyShipDirection == ShipDirection.Right)
+            {
+                enemyShipDirection = ShipDirection.Left;
+                enemy.Position = new Point(nextX - 80, nextY);
+            }
+            else if (enemys[0].Position.X == 0 && enemyShipDirection == ShipDirection.Left)
+            {
+                enemyShipDirection = ShipDirection.Right;
+                
+                for (int i = 0; i < 8; i++)
+                {
+                    enemys[i].Position = new Point(nextX - 40 + (i * 40), nextY + 40);
+                }
+
+                break;
+            }
+            else
+            {
+                if (nextX > - 1 && nextX < GameArea.ActualWidth)
                 {
                     enemy.Position = new Point(nextX, nextY);
                 }
             }
-            else
-            {
-                enemy.Position = new Point(nextX - 40, nextY);
-                enemyShipDirection = ShipDirection.Left;
-            }
-            // }
         }
         DrawEnemy();
     }
@@ -247,6 +258,12 @@ public partial class MainWindow : Window
                 GameArea.Children.Remove(enemy.UiElement);
             }
         }
+
+        if (bullet.UiElement != null)
+        {
+            GameArea.Children.Remove(bullet.UiElement);
+            bullet.UiElement = null;
+        }
         
         enemys.Clear();
         
@@ -255,18 +272,19 @@ public partial class MainWindow : Window
         shipDirection = ShipDirection.Right;
         enemyShipDirection = ShipDirection.Right;
         
-        ship.Position = new Point(ShipSquareSize * 9, ShipSquareSize * 19);
+        ship.Position = new Point(ShipSquareSize * 9, ShipSquareSize * 18);
+        ship.Leben = 3;
         
         for (int i = 0; i < 8; i++)
         {
-            enemys.Add(new Ship() { Position = new Point(ShipSquareSize * (i + 1), ShipSquareSize * 5) });
+            enemys.Add(new Ship() { Position = new Point(ShipSquareSize * (i + 1), ShipSquareSize * 2) });
         }
         
         gameTickTimer.Interval = TimeSpan.FromMilliseconds(gameStartSpeed);
         
         DrawShip();
         DrawEnemy();
-        
+        DrawEnemyBullet();
         UpdateGameStatus();
         
         gameTickTimer.IsEnabled = true;
@@ -279,18 +297,24 @@ public partial class MainWindow : Window
         //     getHit();
         //     return false;
         // }
-
-        if ((ship.Position.Y < 20) || (ship.Position.Y >= GameArea.ActualHeight - 20) ||
-            (ship.Position.X < 20) || (ship.Position.X >= GameArea.ActualWidth - 20))
+        
+        if (enemys[0].Position.Y == 680)
         {
+            EndGame();
             return true;
         }
         
-            if ((ship.Position.X == bullet.Position.X) &&
-                (ship.Position.Y == bullet.Position.Y))
-            {
-                EndGame();
-            }
+        // if ((ship.Position.Y < 20) || (ship.Position.Y >= GameArea.ActualHeight - 20) ||
+        //     (ship.Position.X < 20) || (ship.Position.X >= GameArea.ActualWidth - 20))
+        // {
+        //     return true;
+        // }
+        
+        if ((ship.Position.X == bullet.Position.X) &&
+            (ship.Position.Y == bullet.Position.Y))
+        {
+            return true;
+        }
         return false;
     }
     
@@ -304,28 +328,55 @@ public partial class MainWindow : Window
     
     private Point GetNextEnemyBulletPosition()
     {
-        int maxX = (int)((GameArea.ActualWidth - 20) / ShipSquareSize);
-        int maxY = (int)((GameArea.ActualHeight - 20) / ShipSquareSize);
+        int maxX = (int)((GameArea.ActualWidth - 40) / ShipSquareSize);
+        int maxY = (int)((GameArea.ActualHeight - 40) / ShipSquareSize);
         int bulletX = rnd.Next(1, maxX) * ShipSquareSize;
-        int bulletY = 2 * ShipSquareSize;
+        int bulletY = 3 * ShipSquareSize;
         
         return new Point(bulletX, bulletY);
     }
 
     private void DrawEnemyBullet()
     {
-        Point bulletPosition = GetNextEnemyBulletPosition();
-        
-        bullet.UiElement = new Ellipse()
+        if (bullet.UiElement == null)
         {
-            Width = ShipSquareSize,
-            Height = ShipSquareSize,
-            Fill = enemyBulletBrush
-        };
+            Point bulletPosition = GetNextEnemyBulletPosition();
+
+            bullet.UiElement = new Ellipse()
+            {
+                Width = ShipSquareSize / 10,
+                Height = ShipSquareSize,
+                Fill = enemyBulletBrush
+            };
+            GameArea.Children.Add(bullet.UiElement);
+            bullet.Position = new Point(bulletPosition.X, bulletPosition.Y);
+            Canvas.SetTop(bullet.UiElement, bulletPosition.Y);
+            Canvas.SetLeft(bullet.UiElement, bulletPosition.X + 18);
+        }
+        else
+        {
+            Canvas.SetTop(bullet.UiElement, bullet.Position.Y);
+            Canvas.SetLeft(bullet.UiElement, bullet.Position.X + 18);
+        }
+    }
+
+    private void MoveEnemyBullet()
+    {
+        double nextX = bullet.Position.X;
+        double nextY = bullet.Position.Y;
+
+        if (DoCollisionCheck())
+        {
+            ship.Leben -= 1;
+            
+            if (ship.Leben == 0)
+            {
+                EndGame();
+            }
+        }
         
-        GameArea.Children.Add(bullet.UiElement);
-        Canvas.SetTop(bullet.UiElement, bulletPosition.Y);
-        Canvas.SetLeft(bullet.UiElement, bulletPosition.X);
+        bullet.Position = new Point(nextX, nextY + 40);
+        DrawEnemyBullet();
     }
     
     // private void DrawMyBullet()

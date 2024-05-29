@@ -9,6 +9,8 @@ public class Ship
     public Point Position { get; set; }
     
     public bool IsHit { get; set; }
+
+    public int Leben { get; set; }
 }
 
 public class SpaceHighscore
