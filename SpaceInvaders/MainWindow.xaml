@@ -24,7 +24,8 @@
         <Grid DockPanel.Dock="Top" Name="pnlTitleBar">  
             <Grid.ColumnDefinitions>  
                 <ColumnDefinition Width="*" />  
-                <ColumnDefinition Width="*" />  
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" /> 
                 <ColumnDefinition Width="Auto" />  
             </Grid.ColumnDefinitions>  
 
@@ -37,17 +38,22 @@
                 </Style>  
             </Grid.Resources>  
 
-            <WrapPanel Background="Black" Margin="0,0,0,0">  
+            <WrapPanel Name="Score" Background="Black" Margin="0,0,0,0">  
                 <TextBlock Margin="10,0,0,0">Score:</TextBlock>  
-                <TextBlock Name="tbStatusScore">0</TextBlock>  
-            </WrapPanel>  
+                <TextBlock Name="tbStatusScore">0</TextBlock>
+            </WrapPanel> 
             
-            <WrapPanel Background="Black" Grid.Column="1">  
+            <WrapPanel Name="life" Background="Black" Grid.Column="1">  
+                <TextBlock>Lifes:</TextBlock>
+                
+            </WrapPanel> 
+            
+            <WrapPanel Background="Black" Grid.Column="2">  
                 <TextBlock>Speed:</TextBlock>  
                 <TextBlock Name="tbStatusSpeed">0</TextBlock>  
             </WrapPanel>  
             
-            <Button Grid.Column="2" DockPanel.Dock="Right" Background="Black" Foreground="White" 
+            <Button Grid.Column="3" DockPanel.Dock="Right" Background="Black" Foreground="White" 
                     FontWeight="Bold" FontSize="20" BorderThickness="0" Name="btnClose" 
                     Click="BtnClose_Click" Padding="10,0">X</Button>  
         </Grid>  
@@ -55,12 +61,12 @@
         <Border BorderBrush="Black" BorderThickness="5">  
             <Canvas Name="GameArea" ClipToBounds="True" Width="800" Height="800">
                   
-                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="200" Canvas.Top="180" Name="bdrWelcomeMessage" Panel.ZIndex="1">
+                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="250" Canvas.Top="250" Name="bdrWelcomeMessage" Panel.ZIndex="1">
                     <StackPanel Orientation="Vertical" Background="Gray">
                         
                         <TextBlock FontWeight="Bold" FontSize="30" HorizontalAlignment="Center" Margin="0,20,0,0">Space Invaders</TextBlock>
                         <TextBlock TextWrapping="Wrap" Margin="20" FontSize="16">Use the Arrow keys to control the Space Ship. 
-                            Make it shot Aliens, but be sure not to get a Hit by them!</TextBlock>
+                            Shot Aliens, but be sure not to get a Hit by them!</TextBlock>
                         <TextBlock FontWeight="Bold" HorizontalAlignment="Center" FontSize="24" Foreground="Maroon">Press SPACE to start!</TextBlock>
                         
                         <Button Margin="20" Name="btnShowHighscoreList" Click="BtnShowHighscoreList_Click" HorizontalAlignment="Center" 
@@ -92,7 +98,7 @@
                     </StackPanel>
                 </Border>
                 
-                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="50" Canvas.Top="50" Name="bdrNewHighscore" Panel.ZIndex="1" Visibility="Collapsed">  
+                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="250" Canvas.Top="250" Name="bdrNewHighscore" Panel.ZIndex="1" Visibility="Collapsed">  
                     <StackPanel Orientation="Vertical" Background="Gray">  
                         <TextBlock HorizontalAlignment="Center" FontSize="34" FontWeight="Bold" Margin="20">New Highscore!</TextBlock>  
                         <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="16">  
@@ -108,7 +114,7 @@
                     </StackPanel>  
                 </Border>
                 
-                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="50" Canvas.Top="50" Name="bdrEndOfGame" Panel.ZIndex="1" Visibility="Collapsed">
+                <Border BorderBrush="Silver" BorderThickness="2" Width="300" Height="300" Canvas.Left="250" Canvas.Top="250" Name="bdrEndOfGame" Panel.ZIndex="1" Visibility="Collapsed">
                     <StackPanel Orientation="Vertical" Background="Gray">
                         <TextBlock HorizontalAlignment="Center" FontSize="40" FontWeight="Bold" Margin="0,20,0,0">Oh no!</TextBlock>
                         <TextBlock HorizontalAlignment="Center" FontSize="26" FontWeight="Bold">...you died!</TextBlock>

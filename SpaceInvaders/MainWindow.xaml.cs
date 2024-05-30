@@ -26,12 +26,18 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         gameTickTimer.Tick += GameTickTimer_Tick;
+        bulletTickTimer.Tick += BulletTickTimer_Tick;
+
         LoadHighscoreList();
     }
     
     private const int ShipSquareSize = 40;
     private const int gameStartSpeed = 400;
+    private const int bulletStartSpeed = 100;
     private const int gameSpeedThreshold = 40;
+    private int alienSpeed = 2;
+
+    private int enemysAlive = 8;
 
     private Random rnd = new Random();
     private Ship ship = new Ship();
@@ -41,8 +47,11 @@ public partial class MainWindow : Window
     const int MaxHighscoreListEntryCount = 5;
     
     private System.Windows.Threading.DispatcherTimer gameTickTimer = new System.Windows.Threading.DispatcherTimer();
+    private System.Windows.Threading.DispatcherTimer bulletTickTimer = new System.Windows.Threading.DispatcherTimer();
 
-    private Bullet bullet = new Bullet(); 
+
+    private Bullet bullet = new Bullet();
+    private Bullet myBullet = new Bullet();
     
     private SolidColorBrush enemyBulletBrush = Brushes.Red;
     private SolidColorBrush myBulletBrush = Brushes.Green;
@@ -56,13 +65,23 @@ public partial class MainWindow : Window
     private ShipDirection shipDirection = ShipDirection.Right;
     private ShipDirection enemyShipDirection = ShipDirection.Left;
 
-    
+
     private void Window_ContentRendered(Object sender, EventArgs e)
     {
         DrawGameArea();
-        //StartNewGame();
+        for (int i = 0; i < 3; i++)
+        {
+            Image temp = new Image
+            {
+                Height = 25,
+                Width = 25,
+                Source = (new BitmapImage(new Uri(
+                    "C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\images\\player.png", UriKind.Absolute)))
+            };
+            life.Children.Add(temp);
+        }
     }
-    
+
     private void DrawGameArea()
     {
         bool doneDrawingBackground = false;
@@ -102,9 +121,16 @@ public partial class MainWindow : Window
     }
 
     private void GameTickTimer_Tick(Object sender, EventArgs e)
-    {
+    { 
         MoveEnemy();
+    }
+    private void BulletTickTimer_Tick(Object sender, EventArgs e)
+    { 
         MoveEnemyBullet();
+        if (myBullet.UiElement != null)
+        { 
+            MoveMyBullet();
+        }
     }
     
     private void MoveShip()
@@ -151,33 +177,7 @@ public partial class MainWindow : Window
             Canvas.SetLeft(ship.UiElement, ship.Position.X);
         }
     }
-
-    public void DrawEnemy()
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            if (enemys[i].UiElement == null)
-            {
-                enemys[i].UiElement = new Rectangle()
-                {
-                    Width = ShipSquareSize,
-                    Height = ShipSquareSize,
-                    Fill = (new ImageBrush(new BitmapImage(new Uri(
-                        $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\images\\Invader{i+1}.gif",
-                        UriKind.Absolute))))
-                };
-                GameArea.Children.Add(enemys[i].UiElement);
-                Canvas.SetTop(enemys[i].UiElement, enemys[i].Position.Y);
-                Canvas.SetLeft(enemys[i].UiElement, enemys[i].Position.X);
-            }
-            else
-            {
-                Canvas.SetTop(enemys[i].UiElement, enemys[i].Position.Y);
-                Canvas.SetLeft(enemys[i].UiElement, enemys[i].Position.X);
-            }
-        }
-    }
-
+    
     public void MoveEnemy()
     {
         foreach (Ship enemy in enemys)
@@ -195,25 +195,44 @@ public partial class MainWindow : Window
                     break;
             }
 
-            if (DoCollisionCheck())
+            if (EnemyCollisionCheck())
             {
                 break;
             }
+
+            int temp = 0;
             
-            if (enemys[7].Position.X == 760.0 && enemyShipDirection == ShipDirection.Right)
+            for (int j = 0; j < 8; j++)
+            {
+                if (enemys[j].IsHit == false)
+                {
+                    temp = j;
+                    break;
+                }
+            }
+
+            int temp2 = 0;
+            for (int k = 7; k > 0; k--)
+            {
+                if (enemys[k].IsHit == false)
+                {
+                    temp2 = k;
+                    break;
+                }
+            }
+            if (enemys[temp2].Position.X == 760.0 && enemyShipDirection == ShipDirection.Right)
             {
                 enemyShipDirection = ShipDirection.Left;
                 enemy.Position = new Point(nextX - 80, nextY);
             }
-            else if (enemys[0].Position.X == 0 && enemyShipDirection == ShipDirection.Left)
+            else if (enemys[temp].Position.X == 0 && enemyShipDirection == ShipDirection.Left)
             {
                 enemyShipDirection = ShipDirection.Right;
                 
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < enemys.Count; i++)
                 {
-                    enemys[i].Position = new Point(nextX - 40 + (i * 40), nextY + 40);
+                    enemys[i].Position = new Point(nextX -(40 * temp) - 40 + (i * 40), nextY + 40);
                 }
-
                 break;
             }
             else
@@ -225,6 +244,36 @@ public partial class MainWindow : Window
             }
         }
         DrawEnemy();
+    }
+
+    public void DrawEnemy()
+    {
+        for (int i = 0; i < enemys.Count; i++)
+        {
+            if (enemys[i].UiElement == null)
+            {
+                enemys[i].UiElement = new Rectangle()
+                {
+                    Width = ShipSquareSize,
+                    Height = ShipSquareSize,
+                    Fill = (new ImageBrush(new BitmapImage(new Uri(
+                        $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\images\\Invader{i+1}.gif",
+                        UriKind.Absolute))))
+                };
+                enemys[i].IsHit = false;
+                GameArea.Children.Add(enemys[i].UiElement);
+                Canvas.SetTop(enemys[i].UiElement, enemys[i].Position.Y);
+                Canvas.SetLeft(enemys[i].UiElement, enemys[i].Position.X);
+            }
+            else
+            {
+                if (!enemys[i].IsHit)
+                {
+                Canvas.SetTop(enemys[i].UiElement, enemys[i].Position.Y);
+                Canvas.SetLeft(enemys[i].UiElement, enemys[i].Position.X);
+                }
+            }
+        }
     }
     
     private void Window_KeyDown(Object sender, KeyEventArgs e)
@@ -238,6 +287,9 @@ public partial class MainWindow : Window
             case Key.Right:
                     shipDirection = ShipDirection.Right;
                 MoveShip();
+                break;
+            case Key.Up:
+                DrawMyBullet();
                 break;
             case Key.Space:
                 StartNewGame();
@@ -274,6 +326,11 @@ public partial class MainWindow : Window
         
         ship.Position = new Point(ShipSquareSize * 9, ShipSquareSize * 18);
         ship.Leben = 3;
+
+        for (int i = 1; i <= ship.Leben; i++)
+        {
+        life.Children[i].Visibility = Visibility.Visible;
+        }
         
         for (int i = 0; i < 8; i++)
         {
@@ -281,48 +338,72 @@ public partial class MainWindow : Window
         }
         
         gameTickTimer.Interval = TimeSpan.FromMilliseconds(gameStartSpeed);
+        bulletTickTimer.Interval = TimeSpan.FromMilliseconds(bulletStartSpeed);
+
         
         DrawShip();
         DrawEnemy();
         DrawEnemyBullet();
+        
         UpdateGameStatus();
         
         gameTickTimer.IsEnabled = true;
+        bulletTickTimer.IsEnabled = true;
+    }
+
+    private bool MyCollisionCheck()
+    {
+        int count = 0;
+        bool hit = false;
+        
+        foreach (Ship enemy in enemys)
+        {
+                count++;
+            if ((enemy.Position.X == myBullet.Position.X) && (enemy.Position.Y == myBullet.Position.Y - 40) && enemy.IsHit == false)
+            {
+                SetHit();
+                enemy.IsHit = true;
+                enemysAlive--;
+                hit = true;
+                break;
+            }
+        }
+
+        if (enemysAlive == 0)
+        {
+            EndGame();
+        }
+        
+        if (hit)
+        {
+            GameArea.Children.Remove(enemys[count - 1].UiElement);
+            return true;
+        }
+
+        return false;
     }
     
-    private bool DoCollisionCheck()
+    private bool EnemyCollisionCheck()
     {
-        // if ((ship.Position.X == Canvas.GetLeft(bullet.UiElement)) && (ship.Position.Y == Canvas.GetTop(bullet.UiElement)))
-        // {
-        //     getHit();
-        //     return false;
-        // }
-        
+
         if (enemys[0].Position.Y == 680)
         {
             EndGame();
             return true;
         }
-        
-        // if ((ship.Position.Y < 20) || (ship.Position.Y >= GameArea.ActualHeight - 20) ||
-        //     (ship.Position.X < 20) || (ship.Position.X >= GameArea.ActualWidth - 20))
-        // {
-        //     return true;
-        // }
-        
+
         if ((ship.Position.X == bullet.Position.X) &&
-            (ship.Position.Y == bullet.Position.Y))
+            (ship.Position.Y == bullet.Position.Y + 40))
         {
             return true;
         }
         return false;
     }
     
-    private void getHit()
+    private void SetHit()
     {
         currentScore++;
-        GameArea.Children.Remove(bullet.UiElement);
-        DrawEnemyBullet();
+        GameArea.Children.Remove(myBullet.UiElement);
         UpdateGameStatus();
     }
     
@@ -365,35 +446,82 @@ public partial class MainWindow : Window
         double nextX = bullet.Position.X;
         double nextY = bullet.Position.Y;
 
-        if (DoCollisionCheck())
+        if (EnemyCollisionCheck())
         {
+            life.Children[ship.Leben].Visibility = Visibility.Hidden;
             ship.Leben -= 1;
             
+            bullet.Position = GetNextEnemyBulletPosition();
+
             if (ship.Leben == 0)
             {
                 EndGame();
             }
         }
-        
-        bullet.Position = new Point(nextX, nextY + 40);
+        else
+        {
+            if (bullet.Position.Y == GameArea.ActualHeight)
+            {
+                bullet.Position = GetNextEnemyBulletPosition();
+            }
+            else
+            {
+                bullet.Position = new Point(nextX, nextY + 40);
+            }
+        }
         DrawEnemyBullet();
     }
     
-    // private void DrawMyBullet()
-    // {
-    //     Point bulletPosition = GetNextBulletPosition();
-    //     
-    //     bullet.UiElement = new Ellipse()
-    //     {
-    //         Width = ShipSquareSize,
-    //         Height = ShipSquareSize,
-    //         Fill = myBulletBrush
-    //     };
-    //     
-    //     GameArea.Children.Add(snakeFood);
-    //     Canvas.SetTop(snakeFood, foodPosition.Y);
-    //     Canvas.SetLeft(snakeFood, foodPosition.X);
-    // }
+    private void DrawMyBullet()
+    {
+        if (myBullet.UiElement == null)
+        {
+            myBullet.UiElement = new Ellipse()
+            {
+                Width = ShipSquareSize / 10,
+                Height = ShipSquareSize,
+                Fill = myBulletBrush
+            };
+            GameArea.Children.Add(myBullet.UiElement);
+            myBullet.Position = new Point(ship.Position.X, ship.Position.Y);
+            
+            Canvas.SetTop(myBullet.UiElement, ship.Position.Y - 40);
+            Canvas.SetLeft(myBullet.UiElement, ship.Position.X + 18);
+        }
+        else
+        {
+            Canvas.SetTop(myBullet.UiElement, myBullet.Position.Y);
+            Canvas.SetLeft(myBullet.UiElement, myBullet.Position.X + 18);
+        }
+    }
+
+    private void MoveMyBullet()
+    {
+        double nextX = myBullet.Position.X;
+        double nextY = myBullet.Position.Y;
+
+        if (MyCollisionCheck())
+        {
+            myBullet.UiElement = null;
+        }
+        else
+        {
+            if (myBullet.Position.Y == 0)
+            {
+                GameArea.Children.Remove(myBullet.UiElement);
+                myBullet.UiElement = null;
+            }
+            else
+            {
+                myBullet.Position = new Point(nextX, nextY - 40);
+            }
+        }
+
+        if (myBullet.UiElement != null)
+        {
+        DrawMyBullet();
+        }
+    }
     
     private void UpdateGameStatus()
     {
@@ -422,7 +550,7 @@ public partial class MainWindow : Window
         }
 
         gameTickTimer.IsEnabled = false;
-        MessageBox.Show("Ooops, you died! \n\n To start a new game, just press the Spacebar!", "SpaceInvaders");
+        bulletTickTimer.IsEnabled = false;
     }
 
     private void Window_MouseDown(object sender, MouseButtonEventArgs e)
