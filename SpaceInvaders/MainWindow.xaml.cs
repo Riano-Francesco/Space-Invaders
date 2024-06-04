@@ -24,138 +24,138 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        InitializeComponent();
-        gameTickTimer.Tick += GameTickTimer_Tick;
-        bulletTickTimer.Tick += BulletTickTimer_Tick;
-        deathAnimationTickTimer.Tick += DeathAnimationTickTimer_Tick;
-        LoadHighscoreList();
+        InitializeComponent(); // Lädt alle Komponenten
+        gameTickTimer.Tick += GameTickTimer_Tick; // aufrufen des Ticks für die Spielgeschwindigkeit
+        bulletTickTimer.Tick += BulletTickTimer_Tick; // aufrufen des Ticks für die Projektil-geschwindigkeit
+        deathAnimationTickTimer.Tick += DeathAnimationTickTimer_Tick; // aufrufen des Ticks für die Todes-Animationsgeschwindigkeit
+        LoadHighscoreList(); // aufrufen der Highscoreliste falls eine vorhanden ist
     }
     
-    private const int ShipSquareSize = 40;
-    private const int gameStartSpeed = 400;
-    private const int bulletStartSpeed = 100;
-    private const int deathAnimationSpeed = 100;
-    private const int gameSpeedThreshold = 40;
+    private const int ShipSquareSize = 40; // Variable um die größe der einzelnen Felder zu bestimmen
+    private const int gameStartSpeed = 400; // Variable für die Startgeschwindigkeit des Spiels (Bewegung der Feinde)
+    private const int bulletStartSpeed = 100; // Variable für Projektilgeschwindigkeit 
+    private const int deathAnimationSpeed = 100; // Variable für die Geschwindigkeit der Todesanimation
+    private const int gameSpeedThreshold = 40; // Variable für die schnellste Spielgeschwingkeit - nie genutzt
 
-    private int alienSpeed = 2;
-    private int enemysAlive = 24;
-    private int currentHit = 0;
+    private int alienSpeed = 2; // Variable für die Gegnergeschwindigkeit über modulo - tick wird nicht benötigt
+    private int enemysAlive = 24; // Variable für die Anzahl an lebende Feinden zu begin
+    private int currentHit = 0; // Variable für die Anzahl der getroffenen Feinde - zu begin keine
 
-    private int currentFrameMyBullet = 1;
-    private int currentFrameEnemyBullet = 1;
-    private int currentDeathFrame = 1;
-    private int currentDeathAnimationFrame = 1;
-    private int currentEnemyHitAnimationFrame = 1;
+    private int currentFrameMyBullet = 1; // Variable für die Bildlaufgeschwindigkeit des eigenen Projektils
+    private int currentFrameEnemyBullet = 1; // Variable für die Bildlaufgeschwindigkeit des feindlichen Projektils
+    private int currentDeathFrame = 1; // Variable für die Bildlaufgeschwindigkeit der gegnerischen Todesanimation
+    private int currentDeathAnimationFrame = 1; // Variable für die Bildlaufgeschwindigkeit der gegnerischen Todesanimation und die eigene
+    private int currentEnemyHitAnimationFrame = 1; // Variable für die Bildlaufgeschwindigkeit der Hitanimation wenn man getroffen wird
 
-    private Random rnd = new Random();
-    private Ship ship = new Ship();
-    private List<Ship> enemys = new List<Ship>();
-    private UIElement deathAnimation;
-    private UIElement myDeathAnimation;
-    private UIElement enemyHitAnimation;
+    private Random rnd = new Random(); // Variable rnd zum erstellen von Random zahlen
+    private Ship ship = new Ship(); // Variable ship vom typ Ship (Objekt)
+    private List<Ship> enemys = new List<Ship>(); // Variablenliste vom Typ Ship
+    private UIElement deathAnimation; // gegnerische Todesanim. vom Typ UIElement
+    private UIElement myDeathAnimation; // eigene Todesanim.
+    private UIElement enemyHitAnimation; // Hitanimation wenn Schiff vom gegner getroffen wird
     
-    private int currentScore = 0;
-    const int MaxHighscoreListEntryCount = 5;
+    private int currentScore = 0; // variable um aktuellen score auf null zu setzen (neues spiel)
+    const int MaxHighscoreListEntryCount = 5; // maximale einträge im Fenster des Highscores
     
-    private System.Windows.Threading.DispatcherTimer gameTickTimer = new System.Windows.Threading.DispatcherTimer();
+    private System.Windows.Threading.DispatcherTimer gameTickTimer = new System.Windows.Threading.DispatcherTimer(); // notwendig wenn man mit tick arbeitet
     private System.Windows.Threading.DispatcherTimer bulletTickTimer = new System.Windows.Threading.DispatcherTimer();
     private System.Windows.Threading.DispatcherTimer deathAnimationTickTimer = new System.Windows.Threading.DispatcherTimer();
 
-    private Bullet bullet = new Bullet();
-    private Bullet myBullet = new Bullet();
+    private Bullet bullet = new Bullet(); // variable vom Typ Bullet - gegner
+    private Bullet myBullet = new Bullet(); // Variable vom Typ Bullet - eigene
     
-    private SolidColorBrush enemyBulletBrush = Brushes.Red;
+    private SolidColorBrush enemyBulletBrush = Brushes.Red; // variable vom typ SolidColorBrush - Farbe des gegner projektils
     
-    public enum ShipDirection
+    public enum ShipDirection // Liste für die möglichen Bewegungsrichtungen
     {
         Left,
         Right
     };
     
-    private ShipDirection shipDirection = ShipDirection.Right;
-    private ShipDirection enemyShipDirection = ShipDirection.Left;
+    private ShipDirection shipDirection = ShipDirection.Right; // eigene Bewegungsrichtung
+    private ShipDirection enemyShipDirection = ShipDirection.Left; // gegner Bewegungsrichtung
 
 
-    private void Window_ContentRendered(Object sender, EventArgs e)
+    private void Window_ContentRendered(Object sender, EventArgs e) // Methode ruft Spielfeld auf und fügt Bild für Lebensanzeige hinzu
     {
         DrawGameArea();
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++) // 3 Läufe für 3 Leben
         {
-            Image temp = new Image
+            Image temp = new Image // erstellen des Bildes für Lebensanzeige
             {
                 Height = 25,
                 Width = 25,
                 Source = (new BitmapImage(new Uri(
                     "C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\images\\player.png", UriKind.Absolute)))
             };
-            life.Children.Add(temp);
+            life.Children.Add(temp); // hinzufügen des Bildes zum Wrappanel
         }
     }
 
-    private void DrawGameArea()
+    private void DrawGameArea() // Methode zum zeichnen des Spielfeldes
     {
-        bool doneDrawingBackground = false;
-        int nextX = 0;
-        int nextY = 0;
-        int rowCounter = 0;
-        bool nextIsOdd = false;
+        bool doneDrawingBackground = false; // variable zum verlassen der While nachdem Hintergrund fertig gezeichnet wurde
+        int nextX = 0; // Position X
+        int nextY = 0; // Position Y
+        int rowCounter = 0; // Zähler für die Anzahl der Reihen des Spielfeldes
+        bool nextIsOdd = false; // ist die nächste zahl eine ungerade zahl 
 
-        while (doneDrawingBackground == false)
+        while (doneDrawingBackground == false) // kopfgesteuert - bedingung muss erfüllt sein um reinzukommen
         {
-            Rectangle rect = new Rectangle
+            Rectangle rect = new Rectangle // erstellen eines neuen Rechtecks (UI ELement)
             {
                 Width = ShipSquareSize,
                 Height = ShipSquareSize,
-                Fill = nextIsOdd ? Brushes.Transparent : Brushes.Transparent
+                Fill = nextIsOdd ? Brushes.Transparent : Brushes.Transparent // Kurzschreibweise einer if - je nach true oder false wird jeweilige brush gesetzt
             };
             
-            GameArea.Children.Add(rect);
-            Canvas.SetTop(rect, nextY);
-            Canvas.SetLeft(rect, nextX);
+            GameArea.Children.Add(rect); // hinzufügen des Rechtecks zum Canvas
+            Canvas.SetTop(rect, nextY); // positionierung des Rechtecks von oben beginnend
+            Canvas.SetLeft(rect, nextX); // positionierung des Rechtecks von links beginnend
 
-            nextIsOdd = !nextIsOdd;
-            nextX += ShipSquareSize;
-            if (nextX >= GameArea.ActualWidth)
+            nextIsOdd = !nextIsOdd; // hier wird es negiert - also immer das gegenteil gesetzt
+            nextX += ShipSquareSize; // X wird die größe des Rechtecks addiert
+            if (nextX >= GameArea.ActualWidth) // wenn nächstes X größer gleich Spielfeldbreite (rechts)
             {
-                nextX = 0;
-                nextY += ShipSquareSize;
-                rowCounter++;
-                nextIsOdd = (rowCounter % 2 != 0);
+                nextX = 0; 
+                nextY += ShipSquareSize; // Y wird die größe des Rechtecks addiert
+                rowCounter++; // Reihen werden hochgezählt pro erreichen des maximalen X werts (Spielfeldbreite abhängig)
+                nextIsOdd = (rowCounter % 2 != 0); // zuweisung von 0 oder 1 zu nextIsOdd um Schachbrettmuster zu erzeugen
             }
 
-            if (nextY >= GameArea.ActualHeight)
+            if (nextY >= GameArea.ActualHeight) // wenn nächstes Y größer gleich Spielfeldhöhe (unten)
             {
-                doneDrawingBackground = true;
+                doneDrawingBackground = true; // Schleifen ausstiegsbedingung wird true gesetzt
             }
         }
     }
 
-    private void GameTickTimer_Tick(Object sender, EventArgs e)
+    private void GameTickTimer_Tick(Object sender, EventArgs e) // Tick Methode Gegnerbewegung
     {
         MoveEnemy();
     }
-    private void BulletTickTimer_Tick(Object sender, EventArgs e)
+    private void BulletTickTimer_Tick(Object sender, EventArgs e) // Tick Methode Projektilbewegung
     { 
         MoveEnemyBullet();
-        if (myBullet.UiElement != null)
+        if (myBullet.UiElement != null) // wenn eigenes Projektil vorhanden
         { 
-            MoveMyBullet();
+            MoveMyBullet(); // Methode ausführen
         }
-        if (enemyHitAnimation != null)
+        if (enemyHitAnimation != null) // wenn Hit animation ausgeführt wird
         { 
-            EnemyHitAnimation();
+            EnemyHitAnimation(); // Methode um animation fortzusetzen
         }
     }
-    private void DeathAnimationTickTimer_Tick(Object sender, EventArgs e)
+    private void DeathAnimationTickTimer_Tick(Object sender, EventArgs e) // Tick Methode Todesanimation
     {
-        if (deathAnimation != null)
+        if (deathAnimation != null) // wenn Todesanimation ausgeführt wird
         { 
-            EnemyDeathAnimation(new Point());
+            EnemyDeathAnimation(new Point()); // wird es mit neuer Position fortgesetzt
         }
 
-        if (myDeathAnimation != null)
+        if (myDeathAnimation != null) // wenn eigene Todesanimation läuft
         {
-            MyDeathAnimation();
+            MyDeathAnimation(); // Methode um Animation fortzusetzen
         }
     }
     
