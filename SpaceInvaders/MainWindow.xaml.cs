@@ -27,32 +27,39 @@ public partial class MainWindow : Window
         InitializeComponent();
         gameTickTimer.Tick += GameTickTimer_Tick;
         bulletTickTimer.Tick += BulletTickTimer_Tick;
-
+        deathAnimationTickTimer.Tick += DeathAnimationTickTimer_Tick;
         LoadHighscoreList();
     }
     
     private const int ShipSquareSize = 40;
     private const int gameStartSpeed = 400;
     private const int bulletStartSpeed = 100;
+    private const int deathAnimationSpeed = 100;
     private const int gameSpeedThreshold = 40;
-    private int alienSpeed = 2;
 
+    private int alienSpeed = 2;
     private int enemysAlive = 24;
     private int currentHit = 0;
 
     private int currentFrameMyBullet = 1;
     private int currentFrameEnemyBullet = 1;
     private int currentDeathFrame = 1;
+    private int currentDeathAnimationFrame = 1;
+    private int currentEnemyHitAnimationFrame = 1;
 
     private Random rnd = new Random();
     private Ship ship = new Ship();
     private List<Ship> enemys = new List<Ship>();
+    private UIElement deathAnimation;
+    private UIElement myDeathAnimation;
+    private UIElement enemyHitAnimation;
     
     private int currentScore = 0;
     const int MaxHighscoreListEntryCount = 5;
     
     private System.Windows.Threading.DispatcherTimer gameTickTimer = new System.Windows.Threading.DispatcherTimer();
     private System.Windows.Threading.DispatcherTimer bulletTickTimer = new System.Windows.Threading.DispatcherTimer();
+    private System.Windows.Threading.DispatcherTimer deathAnimationTickTimer = new System.Windows.Threading.DispatcherTimer();
 
     private Bullet bullet = new Bullet();
     private Bullet myBullet = new Bullet();
@@ -124,7 +131,7 @@ public partial class MainWindow : Window
     }
 
     private void GameTickTimer_Tick(Object sender, EventArgs e)
-    { 
+    {
         MoveEnemy();
     }
     private void BulletTickTimer_Tick(Object sender, EventArgs e)
@@ -133,6 +140,22 @@ public partial class MainWindow : Window
         if (myBullet.UiElement != null)
         { 
             MoveMyBullet();
+        }
+        if (enemyHitAnimation != null)
+        { 
+            EnemyHitAnimation();
+        }
+    }
+    private void DeathAnimationTickTimer_Tick(Object sender, EventArgs e)
+    {
+        if (deathAnimation != null)
+        { 
+            EnemyDeathAnimation(new Point());
+        }
+
+        if (myDeathAnimation != null)
+        {
+            MyDeathAnimation();
         }
     }
     
@@ -215,14 +238,15 @@ public partial class MainWindow : Window
             }
 
             int temp2 = 0;
-            for (int k = 23; k > 0; k--)
+            for (int k = 23; k > -1; k--)
             {
-                if (enemys[k].IsHit == false)
+                if (enemys[k].IsHit == false )
                 {
                     temp2 = k;
                     break;
                 }
             }
+
             if (enemys[temp2].Position.X == 760.0 && enemyShipDirection == ShipDirection.Right)
             {
                 enemyShipDirection = ShipDirection.Left;
@@ -238,16 +262,17 @@ public partial class MainWindow : Window
                 UpdateGameStatus();
                 
                 enemyShipDirection = ShipDirection.Right;
-
-                int sven = 0;
                 
                 for (int i = 0; i < enemys.Count; i++)
                 {
-                    if (i % 3 == 0)
+                    if (enemys[i].Position.X > 1)
                     {
-                        sven++;
+                        enemys[i].Position = new Point(enemys[i].Position.X - 40, enemys[i].Position.Y + 40);
                     }
-                    enemys[i].Position = new Point(nextX -(40 * temp) - 40 + (sven * 40), enemys[i].Position.Y + 40);
+                    else
+                    {
+                        enemys[i].Position = new Point(enemys[i].Position.X, enemys[i].Position.Y + 40);
+                    }
                 }
                 break;
             }
@@ -355,6 +380,18 @@ public partial class MainWindow : Window
             bullet.UiElement = null;
         }
         
+        if (deathAnimation != null)
+        {
+            GameArea.Children.Remove(deathAnimation);
+            deathAnimation = null;
+        }
+        
+        if (myDeathAnimation != null)
+        {
+            GameArea.Children.Remove(myDeathAnimation);
+            myDeathAnimation = null;
+        }
+        
         enemys.Clear();
         
         currentScore = 0;
@@ -379,7 +416,7 @@ public partial class MainWindow : Window
         
         gameTickTimer.Interval = TimeSpan.FromMilliseconds(gameStartSpeed);
         bulletTickTimer.Interval = TimeSpan.FromMilliseconds(bulletStartSpeed);
-
+        deathAnimationTickTimer.Interval = TimeSpan.FromMilliseconds(deathAnimationSpeed);
         
         DrawShip();
         DrawEnemy();
@@ -389,6 +426,8 @@ public partial class MainWindow : Window
         
         gameTickTimer.IsEnabled = true;
         bulletTickTimer.IsEnabled = true;
+        deathAnimationTickTimer.IsEnabled = true;
+        GameArea.Children[GameArea.Children.IndexOf(ship.UiElement)].Visibility = Visibility.Visible;
     }
 
     private bool MyCollisionCheck()
@@ -417,11 +456,109 @@ public partial class MainWindow : Window
         
         if (hit)
         {
+            EnemyDeathAnimation(enemys[count - 1].Position);
             GameArea.Children.Remove(enemys[count - 1].UiElement);
             return true;
         }
 
         return false;
+    }
+
+    private void EnemyDeathAnimation(Point position)
+    {
+        if (deathAnimation == null)
+        {
+            deathAnimation = new Ellipse()
+            {
+                Width = ShipSquareSize,
+                Height = ShipSquareSize,
+                Fill = new ImageBrush(new BitmapImage(new Uri(
+                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\Animations\\Death{currentDeathAnimationFrame}.png",
+                    UriKind.Absolute)))
+            };
+            GameArea.Children.Add(deathAnimation);
+            Canvas.SetTop(deathAnimation, position.Y);
+            Canvas.SetLeft(deathAnimation, position.X);
+        }
+        else
+        {
+            if (currentDeathAnimationFrame < 5)
+            {
+                (deathAnimation as Ellipse).Fill = new ImageBrush(new BitmapImage(new Uri(
+                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\Animations\\Death{currentDeathAnimationFrame++}.png",
+                    UriKind.Absolute)));
+            }
+            else
+            {
+                GameArea.Children.Remove(deathAnimation);
+                deathAnimation = null;
+                currentDeathAnimationFrame = 1;
+            }
+        }
+    }
+    
+    private void MyDeathAnimation()
+    {
+        if (myDeathAnimation == null)
+        {
+            myDeathAnimation = new Ellipse()
+            {
+                Width = ShipSquareSize,
+                Height = ShipSquareSize,
+                Fill = new ImageBrush(new BitmapImage(new Uri(
+                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\Animations\\Death{currentDeathAnimationFrame}.png",
+                    UriKind.Absolute)))
+            };
+            GameArea.Children.Add(myDeathAnimation);
+            Canvas.SetTop(myDeathAnimation, ship.Position.Y);
+            Canvas.SetLeft(myDeathAnimation, ship.Position.X);
+        }
+        else
+        {
+            if (currentDeathAnimationFrame < 5)
+            {
+                (myDeathAnimation as Ellipse).Fill = new ImageBrush(new BitmapImage(new Uri(
+                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\Animations\\Death{currentDeathAnimationFrame++}.png",
+                    UriKind.Absolute)));
+            }
+            else
+            {
+                currentDeathAnimationFrame = 1;
+            }
+        }
+    }
+    
+    private void EnemyHitAnimation()
+    {
+        if (enemyHitAnimation == null)
+        {
+            enemyHitAnimation = new Ellipse()
+            {
+                Width = ShipSquareSize,
+                Height = ShipSquareSize,
+                Fill = new ImageBrush(new BitmapImage(new Uri(
+                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\Animations\\Hit{currentEnemyHitAnimationFrame}.png",
+                    UriKind.Absolute)))
+            };
+            GameArea.Children.Add(enemyHitAnimation);
+            Canvas.SetTop(enemyHitAnimation, ship.Position.Y);
+            Canvas.SetLeft(enemyHitAnimation, ship.Position.X);
+        }
+        else
+        {
+            if (currentEnemyHitAnimationFrame < 5)
+            {
+                (enemyHitAnimation as Ellipse).Fill = new ImageBrush(new BitmapImage(new Uri(
+                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\Animations\\Hit{currentEnemyHitAnimationFrame++}.png",
+                    UriKind.Absolute)));
+            }
+            else
+            {
+                GameArea.Children.Remove(enemyHitAnimation);
+                enemyHitAnimation = null;
+                currentEnemyHitAnimationFrame = 1;
+            }
+        }
     }
     
     private bool EnemyCollisionCheck()
@@ -430,6 +567,8 @@ public partial class MainWindow : Window
         {
             if (enemy.Position.Y == ship.Position.Y - 40 && enemy.IsHit == false)
             {
+                MyDeathAnimation();
+                GameArea.Children[GameArea.Children.IndexOf(ship.UiElement)].Visibility = Visibility.Hidden;
                 EndGame();
                 return true;
             }
@@ -438,6 +577,7 @@ public partial class MainWindow : Window
         if ((ship.Position.X == bullet.Position.X) &&
             (ship.Position.Y == bullet.Position.Y + 40))
         {
+            EnemyHitAnimation();
             return true;
         }
         return false;
@@ -498,6 +638,9 @@ public partial class MainWindow : Window
 
             if (ship.Leben == 0)
             {
+                MyDeathAnimation();
+                GameArea.Children[GameArea.Children.IndexOf(ship.UiElement)].Visibility = Visibility.Hidden;
+                GameArea.Children.Remove(enemyHitAnimation);
                 EndGame();
             }
         }
