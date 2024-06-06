@@ -221,47 +221,50 @@ public partial class MainWindow : Window
                     break;
             }
 
-            if (EnemyCollisionCheck()) // Bedingung um entsprechende Methode aufzurufen falls True 
+            if (EnemyCollisionCheck()) // Bedingung um entsprechende Methode aufzurufen - falls True 
             {
                 break;
             }
 
             int temp = 0;
             
-            for (int j = 0; j < 24; j++)
+            for (int j = 0; j < 24; j++) // um von Links nach Rechts nach enemys zu schauen
             {
-                if (enemys[j].IsHit == false)
+                if (enemys[j].IsHit == false) // wenn enemy nicht getroffen 
                 {
-                    temp = j;
+                    temp = j; // temp bekommt den nächsten enemy der noch existiert zugewiesen
                     break;
                 }
             }
 
             int temp2 = 0;
-            for (int k = 23; k > -1; k--)
+            for (int k = 23; k > -1; k--) // um von rechts nach links nach enemys zu schauen
             {
                 if (enemys[k].IsHit == false )
                 {
-                    temp2 = k;
+                    temp2 = k; // temp2 bekommt den nächsten enemy der noch existiert zugewiesen
                     break;
                 }
             }
 
-            if (enemys[temp2].Position.X == 760.0 && enemyShipDirection == ShipDirection.Right)
+            // wenn der erste noch bestehende enemy rechts den Rand berührt mit laufrichtung rechts
+            if (enemys[temp2].Position.X == 760.0 && enemyShipDirection == ShipDirection.Right) 
             {
-                enemyShipDirection = ShipDirection.Left;
-                enemy.Position = new Point(nextX - 80, nextY);
+                enemyShipDirection = ShipDirection.Left; // dann wird die richtung aller nach links geändert 
+                enemy.Position = new Point(nextX - 80, nextY); // und dementsprechend eine neue position zugewiesen
             }
+            // ebenfalls wenn der erste noch bestehende enemy links den Rand berührt mit laufrichtung links
             else if (enemys[temp].Position.X == 0 && enemyShipDirection == ShipDirection.Left)
             {
-                if (gameTickTimer.Interval.TotalMilliseconds > 40)
+                if (gameTickTimer.Interval.TotalMilliseconds > 40) // wenn die Spielgeschwindigkeit größer 40 ist
                 {
+                    // dann wird immer bei Kontakt Rand links 40 subtrahiert und das spiel schneller gemacht
                 gameTickTimer.Interval = TimeSpan.FromMilliseconds(gameTickTimer.Interval.TotalMilliseconds - 40);
                 }
                 
                 UpdateGameStatus();
                 
-                enemyShipDirection = ShipDirection.Right;
+                enemyShipDirection = ShipDirection.Right; // wird die richtung aller nach rechts geändert
                 
                 for (int i = 0; i < enemys.Count; i++)
                 {
