@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿﻿using System.Text;
 using System.IO;
 using System.Xml.Serialization;
 using System.Windows;
@@ -161,45 +161,45 @@ public partial class MainWindow : Window
     
     private void MoveShip()
     {
-        double nextX = ship.Position.X;
+        double nextX = ship.Position.X; // Variablenzuweisung der Schiffposition
         double nextY = ship.Position.Y;
         
-        switch (shipDirection)
+        switch (shipDirection) // Switch für die Berechnung der X Achse bei entsprechender Richtung
         {
             case ShipDirection.Left:
-                nextX -= ShipSquareSize;
+                nextX -= ShipSquareSize; // Linke Richtung wird X subtrahiert mit der einzelnen Feldgröße
                 break;
             case ShipDirection.Right:
-                nextX += ShipSquareSize;
+                nextX += ShipSquareSize; // Rechts wird es auf X addiert
                 break;
         }
 
-            if (nextX > - 1 && nextX < GameArea.ActualWidth )
+            if (nextX > - 1 && nextX < GameArea.ActualWidth ) // Bedingung, Falls X Position kleiner 0 oder größer maximale Spielfeld breite ist 
             {
-                ship.Position = new Point(nextX, nextY);
+                ship.Position = new Point(nextX, nextY); // dann wird neue Position dem Schiff zugewiesen - kein out of bounds
             }
 
         DrawShip();
     }
     
-    private void DrawShip()
+    private void DrawShip() 
     {
-        if (ship.UiElement == null)
+        if (ship.UiElement == null) // Wenn UI Element nicht existiert (= null)
         {
-            ship.UiElement = new Rectangle()
+            ship.UiElement = new Rectangle() // Schaffe ein neues als Rechteck
             {
                 Width = ShipSquareSize,
                 Height = ShipSquareSize,
-                Fill = (new ImageBrush(new BitmapImage(new Uri(
+                Fill = (new ImageBrush(new BitmapImage(new Uri( // Füll es mit einem Bild optisch
                     "C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\images\\player.png", UriKind.Absolute))))
             };
-            GameArea.Children.Add(ship.UiElement);
-            Canvas.SetTop(ship.UiElement, ship.Position.Y);
-            Canvas.SetLeft(ship.UiElement, ship.Position.X);
+            GameArea.Children.Add(ship.UiElement); // Füge das UI Element dem Canvas hinzu
+            Canvas.SetTop(ship.UiElement, ship.Position.Y); // Mit der Position von Oben gesehen
+            Canvas.SetLeft(ship.UiElement, ship.Position.X); // Und von Unten gesehen
         }
         else
         {
-            Canvas.SetTop(ship.UiElement, ship.Position.Y);
+            Canvas.SetTop(ship.UiElement, ship.Position.Y); // ansonten Füge das Bestehende nur der Position im Canvas hinzu
             Canvas.SetLeft(ship.UiElement, ship.Position.X);
         }
     }
@@ -208,20 +208,20 @@ public partial class MainWindow : Window
     {
         foreach (Ship enemy in enemys)
         {
-            double nextX = enemy.Position.X;
+            double nextX = enemy.Position.X; // Variablenzuweisung der Schiffposition
             double nextY = enemy.Position.Y;
 
             switch (enemyShipDirection)
             {
-                case ShipDirection.Left:
+                case ShipDirection.Left: // Linke Richtung wird X subtrahiert mit der einzelnen Feldgröße
                     nextX -= ShipSquareSize;
                     break;
-                case ShipDirection.Right:
+                case ShipDirection.Right: // Rechts wird es auf X addiert
                     nextX += ShipSquareSize;
                     break;
             }
 
-            if (EnemyCollisionCheck())
+            if (EnemyCollisionCheck()) // Bedingung um entsprechende Methode aufzurufen falls True 
             {
                 break;
             }
@@ -278,9 +278,9 @@ public partial class MainWindow : Window
             }
             else
             {
-                if (nextX > - 1 && nextX < GameArea.ActualWidth)
+                if (nextX > - 1 && nextX < GameArea.ActualWidth) // Bedingung, Falls X Position kleiner 0 oder größer maximale Spielfeld breite ist 
                 {
-                    enemy.Position = new Point(nextX, nextY);
+                    enemy.Position = new Point(nextX, nextY); // dann wird neue Position dem Schiff zugewiesen - kein out of bounds
                 }
             }
         }
@@ -352,9 +352,9 @@ public partial class MainWindow : Window
                 break;
             case Key.Space:
                 StartNewGame();
-                int background = (rnd.Next() % 3) + 1;
+                int background = (rnd.Next() % 7) + 1;
                 Window.Background = new ImageBrush(new BitmapImage(new Uri(
-                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\images\\universe{background}.png",
+                    $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\backgrounds\\universe{background}.png",
                     UriKind.Absolute)));
                 break;
         }

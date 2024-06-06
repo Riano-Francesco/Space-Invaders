@@ -10,7 +10,7 @@
         Title="Space Invaders - Score: 0" SizeToContent="WidthAndHeight" ContentRendered="Window_ContentRendered" 
         ResizeMode="NoResize" WindowStyle="None" KeyDown="Window_KeyDown" MouseDown="Window_MouseDown">
     <Window.Background>
-        <ImageBrush ImageSource="C:\Users\csl\RiderProjects\Space\SpaceInvaders\images\universe1.png"></ImageBrush>
+        <ImageBrush ImageSource="C:\Users\csl\RiderProjects\Space\SpaceInvaders\backgrounds\universe1.png"></ImageBrush>
     </Window.Background>
     <Window.Resources>
         <CollectionViewSource Source="{Binding ElementName=Window, Path=HighscoreList}" x:Key="HighScoreListViewSource">
