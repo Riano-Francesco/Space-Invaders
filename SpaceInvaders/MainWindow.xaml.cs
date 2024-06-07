@@ -195,11 +195,11 @@ public partial class MainWindow : Window
             };
             GameArea.Children.Add(ship.UiElement); // Füge das UI Element dem Canvas hinzu
             Canvas.SetTop(ship.UiElement, ship.Position.Y); // Mit der Position von Oben gesehen
-            Canvas.SetLeft(ship.UiElement, ship.Position.X); // Und von Unten gesehen
+            Canvas.SetLeft(ship.UiElement, ship.Position.X); // Und von Links gesehen
         }
         else
         {
-            Canvas.SetTop(ship.UiElement, ship.Position.Y); // ansonten Füge das Bestehende nur der Position im Canvas hinzu
+            Canvas.SetTop(ship.UiElement, ship.Position.Y); // aktualisieren der Position im Canvas 
             Canvas.SetLeft(ship.UiElement, ship.Position.X);
         }
     }
@@ -221,28 +221,28 @@ public partial class MainWindow : Window
                     break;
             }
 
-            if (EnemyCollisionCheck()) // Bedingung um entsprechende Methode aufzurufen - falls True 
+            if (EnemyCollisionCheck()) // Bedingung um entsprechende Methode aufzurufen - falls Rückgabewert True 
             {
                 break;
             }
 
             int temp = 0;
             
-            for (int j = 0; j < 24; j++) // um von Links nach Rechts nach enemys zu schauen
+            for (int j = 0; j < 24; j++) // durchgehende Enemy liste
             {
                 if (enemys[j].IsHit == false) // wenn enemy nicht getroffen 
                 {
-                    temp = j; // temp bekommt den nächsten enemy der noch existiert zugewiesen
+                    temp = j; // temp bekommt den ersten! enemy der noch existiert zugewiesen
                     break;
                 }
             }
 
             int temp2 = 0;
-            for (int k = 23; k > -1; k--) // um von rechts nach links nach enemys zu schauen
+            for (int k = 23; k > -1; k--) // durchgehende Enemy liste entgegengesetzt
             {
                 if (enemys[k].IsHit == false )
                 {
-                    temp2 = k; // temp2 bekommt den nächsten enemy der noch existiert zugewiesen
+                    temp2 = k; // temp2 bekommt den letzten! enemy der noch existiert zugewiesen
                     break;
                 }
             }
@@ -266,15 +266,15 @@ public partial class MainWindow : Window
                 
                 enemyShipDirection = ShipDirection.Right; // wird die richtung aller nach rechts geändert
                 
-                for (int i = 0; i < enemys.Count; i++)
+                for (int i = 0; i < enemys.Count; i++) // .Count = zählt wie viele Items in der liste sind
                 {
                     if (enemys[i].Position.X > 1)
-                    {
-                        enemys[i].Position = new Point(enemys[i].Position.X - 40, enemys[i].Position.Y + 40);
+                    { // für alle Enemys nach dem ersten, die nicht in Spalte 1 (links) sind
+                        enemys[i].Position = new Point(enemys[i].Position.X - 40, enemys[i].Position.Y + 40); // neue positionszuweisung Horizontal und Vertikal
                     }
                     else
-                    {
-                        enemys[i].Position = new Point(enemys[i].Position.X, enemys[i].Position.Y + 40);
+                    { // nur die erste Spalte
+                        enemys[i].Position = new Point(enemys[i].Position.X, enemys[i].Position.Y + 40); // ebenfalls, nur Vertikal 
                     }
                 }
                 break;
@@ -318,6 +318,7 @@ public partial class MainWindow : Window
                 
                 }
                 
+                // hier wird die Deathanimation manipuliert und überprüft, ob sie gespielt werden soll
                 if (enemys[i].IsHit && currentDeathFrame < 5)
                 {
                     (enemys[i].UiElement as Rectangle).Fill = new ImageBrush(new BitmapImage(new Uri(
@@ -355,7 +356,7 @@ public partial class MainWindow : Window
                 break;
             case Key.Space:
                 StartNewGame();
-                int background = (rnd.Next() % 7) + 1;
+                int background = (rnd.Next() % 7) + 1; // random der bei jedem Spielstart den Hintergrund verändert
                 Window.Background = new ImageBrush(new BitmapImage(new Uri(
                     $"C:\\Users\\csl\\RiderProjects\\Space\\SpaceInvaders\\backgrounds\\universe{background}.png",
                     UriKind.Absolute)));
@@ -373,43 +374,44 @@ public partial class MainWindow : Window
         {
             if (enemy.UiElement != null)
             {
-                GameArea.Children.Remove(enemy.UiElement);
+                GameArea.Children.Remove(enemy.UiElement); // Entfernen der Enemy UI'S auf Spielfeld
             }
         }
 
         if (bullet.UiElement != null)
         {
-            GameArea.Children.Remove(bullet.UiElement);
+            GameArea.Children.Remove(bullet.UiElement); // Entfernen der Projektil UI auf Spielfeld
             bullet.UiElement = null;
         }
         
         if (deathAnimation != null)
         {
-            GameArea.Children.Remove(deathAnimation);
+            GameArea.Children.Remove(deathAnimation); // Entfernen der Deathanimation UI auf Spielfeld
             deathAnimation = null;
         }
         
         if (myDeathAnimation != null)
         {
-            GameArea.Children.Remove(myDeathAnimation);
+            GameArea.Children.Remove(myDeathAnimation); // Entfernen meiner Deathanimation UI auf Spielfeld
             myDeathAnimation = null;
         }
         
-        enemys.Clear();
+        enemys.Clear(); // Liste leeren
         
         currentScore = 0;
         
         shipDirection = ShipDirection.Right;
         enemyShipDirection = ShipDirection.Right;
         
-        ship.Position = new Point(ShipSquareSize * 9, ShipSquareSize * 18);
+        ship.Position = new Point(ShipSquareSize * 9, ShipSquareSize * 18); // Schiff auf Startposition setzen
         ship.Leben = 3;
 
         for (int i = 1; i <= ship.Leben; i++)
         {
-        life.Children[i].Visibility = Visibility.Visible;
+        life.Children[i].Visibility = Visibility.Visible; // Leben wieder einblenden
         }
         
+        // Enemys darstellen und der Spalte zuweisen
         for (int i = 0; i < 8; i++)
         {
             enemys.Add(new Ship() { Leben = 1, Position = new Point(ShipSquareSize * (i + 1), ShipSquareSize * 2) });
@@ -430,6 +432,8 @@ public partial class MainWindow : Window
         gameTickTimer.IsEnabled = true;
         bulletTickTimer.IsEnabled = true;
         deathAnimationTickTimer.IsEnabled = true;
+        
+        // Schiff wird wieder eingeblendet
         GameArea.Children[GameArea.Children.IndexOf(ship.UiElement)].Visibility = Visibility.Visible;
     }
 
@@ -440,7 +444,9 @@ public partial class MainWindow : Window
         
         foreach (Ship enemy in enemys)
         {
-                count++;
+            count++;
+            
+            // Hitabfrage meines Profektils mit Enemy der noch keinen Hit hat
             if ((enemy.Position.X == myBullet.Position.X) && (enemy.Position.Y == myBullet.Position.Y - 40) && enemy.IsHit == false)
             {
                 SetHit();
@@ -459,7 +465,7 @@ public partial class MainWindow : Window
         
         if (hit)
         {
-            EnemyDeathAnimation(enemys[count - 1].Position);
+            EnemyDeathAnimation(enemys[count - 1].Position); // count - 1 = das schiff welches getroffen wurde und subtraktion da count++ einem hinzugezählt wurde den wir noch nicht hatten
             GameArea.Children.Remove(enemys[count - 1].UiElement);
             return true;
         }
@@ -568,15 +574,17 @@ public partial class MainWindow : Window
     {
         foreach (Ship enemy in enemys)
         {
+            // Abfrage, ob Enemy und Schiffposition übereinstimmen
             if (enemy.Position.Y == ship.Position.Y - 40 && enemy.IsHit == false)
             {
                 MyDeathAnimation();
+                // Schiff ausblenden
                 GameArea.Children[GameArea.Children.IndexOf(ship.UiElement)].Visibility = Visibility.Hidden;
                 EndGame();
                 return true;
             }
         }
-            
+            // wenn eigenes Projektil enemy trifft
         if ((ship.Position.X == bullet.Position.X) &&
             (ship.Position.Y == bullet.Position.Y + 40))
         {
@@ -596,7 +604,6 @@ public partial class MainWindow : Window
     private Point GetNextEnemyBulletPosition()
     {
         int maxX = (int)((GameArea.ActualWidth - 40) / ShipSquareSize);
-        int maxY = (int)((GameArea.ActualHeight - 40) / ShipSquareSize);
         int bulletX = rnd.Next(1, maxX) * ShipSquareSize;
         int bulletY = 3 * ShipSquareSize;
         
@@ -633,7 +640,7 @@ public partial class MainWindow : Window
         double nextY = bullet.Position.Y;
 
         if (EnemyCollisionCheck())
-        {
+        { // Children sind Elemente innerhalb dieses Wrappanels
             life.Children[ship.Leben].Visibility = Visibility.Hidden;
             ship.Leben -= 1;
             
@@ -648,7 +655,7 @@ public partial class MainWindow : Window
             }
         }
         else
-        {
+        { // wenn kugel spielfeldrand trifft wird sie neu gesetzt beim erneuten abschuss
             if (bullet.Position.Y == GameArea.ActualHeight)
             {
                 bullet.Position = GetNextEnemyBulletPosition();
